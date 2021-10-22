@@ -2,9 +2,15 @@ public class Main {
     // создание потоков покупателей
     public static Thread[] createCustomerThreads(int cnt, Shop shop) {
         Thread[] threads = new Thread[cnt];
+
         for(int i = 0; i < cnt; i++) {
             threads[i] = new Thread(null, shop::sellAuto, "Покупатель"+(i+1));
             threads[i].start();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return threads;
     }
@@ -26,6 +32,7 @@ public class Main {
         ReceiveCar receiveCar = new ReceiveCar(newCar, shop);
         // создание потоков покупателей
         customers = createCustomerThreads(cntCust, shop);
+
         // начало работы
         while(true) {
             // все поток покупателей завершены
@@ -38,7 +45,12 @@ public class Main {
                 Thread.sleep(PROD_TIME);
             }
             // проверка на выход из цикла
-            if(shop.getDealsCnt() >= STOP_CNT) break;
+            if(shop.getDealsCnt() >= STOP_CNT) {
+                for(Thread thread : customers) {
+                    thread.interrupt();
+                }
+                break;
+            }
         }
     }
 }
